@@ -17,6 +17,7 @@ const ClientRoute=require('./Routes/client')
 const designRoute = require('./Routes/Design');
 const coursRoute=require('./Routes/CourseRoutes')
 const deveRoute=require('./Routes/Developpement')
+const quizRoutes = require('./Routes/QuizRoute'); 
 
 
 
@@ -30,6 +31,7 @@ app.use(passport.initialize());
 // Routes
 app.use('/api/auth', AuthRoute);
 app.use('/api/admin', adminRoute);
+app.use('/api/quizzes', quizRoutes);
 app.use('/api/client',ClientRoute);
 // Routes de catégories de cours
 app.use('/courses/design', designRoute);
