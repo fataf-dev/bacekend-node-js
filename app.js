@@ -19,6 +19,8 @@ const coursRoute=require('./Routes/CourseRoutes')
 const deveRoute=require('./Routes/Developpement')
 const quizRoutes = require('./Routes/QuizRoute'); 
 
+const CommentRoute = require('./Routes/CommentRoute');
+
 
 
 const { sequelize } = require('./models'); // ✅ seule déclaration
@@ -29,6 +31,11 @@ app.use(express.json());
 app.use(passport.initialize());
 
 // Routes
+
+app.use('/api/quizzes', CommentRoute);
+
+// 👈 Ceci permet POST sur /api/quizzes/addComent
+
 app.use('/api/auth', AuthRoute);
 app.use('/api/admin', adminRoute);
 app.use('/api/quizzes', quizRoutes);

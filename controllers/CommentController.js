@@ -10,10 +10,9 @@ exports.addComment = async (req, res) => {
     }
 
     const nouveau = await Comment.create({ nom, texte, domain });
-
     res.status(201).json(nouveau);
   } catch (err) {
-    console.error('❌ Erreur ajout commentaire :', err);
+    console.error(err);
     res.status(500).json({ message: 'Erreur serveur' });
   }
 };
@@ -28,7 +27,7 @@ exports.getCommentsByDomain = async (req, res) => {
 
     res.status(200).json(commentaires);
   } catch (err) {
-    console.error('❌ Erreur récupération commentaires :', err);
+    console.error(err);
     res.status(500).json({ message: 'Erreur serveur' });
   }
 };
