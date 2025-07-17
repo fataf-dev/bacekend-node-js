@@ -13,4 +13,5 @@ COPY . .
 EXPOSE 3000
 
 # Étape 5 : Commande pour démarrer le serveur
-CMD [ "node", "src/app.js" ]
+
+CMD ["node", "app.js"]
