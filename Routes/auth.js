@@ -56,7 +56,7 @@ router.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
 
   // Vérification des champs requis
-  if (!name || !email || !password) {
+  if (!name || !email) {
     return res.status(400).json({ message: 'Champs requis manquants' });
   }
 
