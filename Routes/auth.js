@@ -51,11 +51,14 @@ router.post('/login', async (req, res) => {
   }
 });
 
-
-
 // Register (Sécurisé - plateforme type Udemy)
 router.post('/register', async (req, res) => {
-  const { name, email } = req.body;
+  const { name, email, password } = req.body;
+
+  // Vérification des champs requis
+  if (!name || !email || !password) {
+    return res.status(400).json({ message: 'Champs requis manquants' });
+  }
 
   try {
     const existingUser = await User.findOne({ where: { email } });
@@ -63,12 +66,10 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ message: 'Cet email est déjà utilisé' });
     }
 
-    // Tous les utilisateurs sont des clients par défaut
     const role = 'user';
 
-    // Générer un mot de passe temporaire ou le demander côté frontend plus tard
-    const temporaryPassword = Math.random().toString(36).slice(-8);
-    const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
+    // Hash du mot de passe fourni par l'utilisateur
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await User.create({
       name,
@@ -95,11 +96,9 @@ router.post('/register', async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).json({ message:
-       'Erreur serveur', error: err.message });
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
 });
-
 
 
 // Récupérer tous les utilisateurs inscrits
