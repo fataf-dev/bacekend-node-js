@@ -51,9 +51,9 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Register (Sécurisé - plateforme type Udemy)
+
 router.post('/register', async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email } = req.body;
 
   // Vérification des champs requis
   if (!name || !email) {
@@ -68,13 +68,9 @@ router.post('/register', async (req, res) => {
 
     const role = 'user';
 
-    // Hash du mot de passe fourni par l'utilisateur
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const newUser = await User.create({
       name,
       email,
-      password: hashedPassword,
       role
     });
 
@@ -99,6 +95,7 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
 });
+
 
 
 // Récupérer tous les utilisateurs inscrits
