@@ -23,7 +23,18 @@ exports.createQuiz = async (req, res) => {
   try {
     console.log('Requête createQuiz:', req.body); // log du body
 
-    const { title, difficulty, domain, questions } = req.body;
+    let { title, difficulty, domain, questions } = req.body;
+
+    // ✅ Traduction automatique de la difficulté si nécessaire
+    const mapDifficultes = {
+      'Facile': 'Easy',
+      'Moyen': 'Medium',
+      'Difficile': 'Hard'
+    };
+
+    if (difficulty in mapDifficultes) {
+      difficulty = mapDifficultes[difficulty];
+    }
 
     if (!title || !difficulty || !domain || !questions) {
       return res.status(400).json({ message: 'Champs manquants' });
