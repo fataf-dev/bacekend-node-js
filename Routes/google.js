@@ -21,7 +21,7 @@ if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !JWT_SECRET) {
 passport.use(new GoogleStrategy({
   clientID: GOOGLE_CLIENT_ID,
   clientSecret: GOOGLE_CLIENT_SECRET,
-  callbackURL: "/auth/google/callback"
+  callbackURL: "https://bacekend-node-js-1.onrender.com/auth/google/callback"
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const [user] = await User.findOrCreate({
