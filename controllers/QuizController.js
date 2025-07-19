@@ -45,12 +45,19 @@ exports.createQuiz = async (req, res) => {
         return res.status(400).json({ message: 'Format de question invalide' });
       }
 
-      await Question.create({
+      const question = await Question.create({
         text: q.text,
         correct: q.correct,
-        options: q.options,
         QuizId: quiz.id
       });
+
+      for (const opt of q.options) {
+        await Option.create({
+          label: opt.label,
+          value: opt.value,
+          QuestionId: question.id
+        });
+      }
     }
 
     res.status(201).json({ message: 'Quiz créé avec succès !', quizId: quiz.id });
@@ -59,6 +66,7 @@ exports.createQuiz = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur' });
   }
 };
+
 
 
 exports.getAllQuizzes = async (req, res) => {
