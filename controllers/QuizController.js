@@ -21,13 +21,15 @@ const domaines = [
 
 exports.createQuiz = async (req, res) => {
   try {
+    console.log('Requête createQuiz:', req.body); // log du body
+
     const { title, difficulty, domain, questions } = req.body;
 
     if (!title || !difficulty || !domain || !questions) {
       return res.status(400).json({ message: 'Champs manquants' });
     }
 
-    const domaineTrouve = domaines.find(d => d.name === domain);
+    const domaineTrouve = domaines.find(d => d.name.toLowerCase() === domain.toLowerCase());
     if (!domaineTrouve) {
       return res.status(400).json({ message: 'Domaine invalide' });
     }
@@ -38,34 +40,22 @@ exports.createQuiz = async (req, res) => {
       domain: domaineTrouve.name,
     });
 
-    // Ici on adapte pour tes données envoyées:
-    // question = q.question
-    // correct = q.correctAnswer
-    // options = q.options (tableau de chaînes)
     for (const q of questions) {
-      const question = await Question.create({
-        text: q.question,
-        correct: q.correctAnswer,
-        options: q.options,          // options en JSON
+      if (!q.text || !q.correct || !q.options) {
+        return res.status(400).json({ message: 'Format de question invalide' });
+      }
+
+      await Question.create({
+        text: q.text,
+        correct: q.correct,
+        options: q.options,
         QuizId: quiz.id
       });
-
-      // Si tu ne gères pas les options dans une table séparée, tu peux supprimer ce bloc
-      // sinon adapte-le selon ton modèle Option
-      /*
-      for (const opt of q.options) {
-        await Option.create({
-          label: opt,       // ici opt est une string
-          value: opt,       // ou adapte si tu as une autre structure
-          QuestionId: question.id
-        });
-      }
-      */
     }
 
     res.status(201).json({ message: 'Quiz créé avec succès !', quizId: quiz.id });
   } catch (err) {
-    console.error(err);
+    console.error('❌ Erreur createQuiz:', err);
     res.status(500).json({ message: 'Erreur serveur' });
   }
 };
