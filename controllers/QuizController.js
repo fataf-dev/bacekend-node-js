@@ -101,19 +101,23 @@ exports.getAllQuizzes = async (req, res) => {
 };
 
 
-
-
-
-
+const { Op, fn, col, where } = require('sequelize');
 
 exports.getQuizByDomain = async (req, res) => {
   try {
-    const domain = req.params.domain;
-    const difficulty = req.query.difficulty; // facultatif
+    const domain = req.params.domain.toLowerCase();
+    const difficulty = req.query.difficulty?.toLowerCase(); // facultatif
 
-    const whereClause = { domain };
+    const whereClause = {
+      [Op.and]: [
+        where(fn('LOWER', col('domain')), domain)
+      ]
+    };
+
     if (difficulty) {
-      whereClause.difficulty = difficulty;
+      whereClause[Op.and].push(
+        where(fn('LOWER', col('difficulty')), difficulty)
+      );
     }
 
     const quizzes = await Quiz.findAll({
@@ -121,7 +125,7 @@ exports.getQuizByDomain = async (req, res) => {
       include: [
         {
           model: Question,
-          include: [Option] // ✅ ici on inclut les options
+          include: [Option]
         }
       ]
     });
