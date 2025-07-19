@@ -59,6 +59,7 @@ exports.createQuiz = async (req, res) => {
       const question = await Question.create({
         text: q.text,
         correct: q.correct,
+        options: q.options,    
         QuizId: quiz.id
       });
 
