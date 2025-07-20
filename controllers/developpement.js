@@ -4,35 +4,28 @@ const { Course } = require('../models');
 const { Sequelize } = require('sequelize');  // Assurez-vous que Sequelize est importé
 // Définition correcte des sous-domaines par domaine
 exports.createCourse = async (req, res) => {
-  let { title, categories, image, badge, author, rating, reviews,description,list1,list2,list3, price, originalPrice, tag, domains,secondSubdomain ,subdomains, sousSousDomaines } = req.body;
-
-  // Convertir si string JSON et non vide
-  if (typeof categories === 'string' && categories.trim() !== '') {
-    try {
-      categories = JSON.parse(categories);
-    } catch (e) {
-      return res.status(400).json({ message: 'Le champ categories contient un JSON invalide' });
-    }
+  if (!req.body || typeof req.body !== 'object') {
+    return res.status(400).json({ message: '❌ Le corps de la requête est vide ou invalide' });
   }
 
-  if (typeof domains === 'string' && domains.trim() !== '') domains = JSON.parse(domains);
-  if (typeof subdomains === 'string' && subdomains.trim() !== '') subdomains = JSON.parse(subdomains);
-  if (typeof secondSubdomain === 'string' && secondSubdomain.trim() !== '')  secondSubdomain = req.body.secondSubdomain;
-  if (typeof sousSousDomaines === 'string' && sousSousDomaines.trim() !== '') sousSousDomaines = JSON.parse(sousSousDomaines);
+  let { title, categories, image, badge, author, rating, reviews, description, list1, list2, list3, price, originalPrice, tag, domains, secondSubdomain, subdomains, sousSousDomaines } = req.body;
 
-  // Vérifie les champs obligatoires
+  // Parsing JSON strings
+  try {
+    if (typeof categories === 'string' && categories.trim() !== '') categories = JSON.parse(categories);
+    if (typeof domains === 'string' && domains.trim() !== '') domains = JSON.parse(domains);
+    if (typeof subdomains === 'string' && subdomains.trim() !== '') subdomains = JSON.parse(subdomains);
+    if (typeof sousSousDomaines === 'string' && sousSousDomaines.trim() !== '') sousSousDomaines = JSON.parse(sousSousDomaines);
+  } catch (e) {
+    return res.status(400).json({ message: '❌ Un des champs JSON est mal formé.' });
+  }
+
   if (!title || !image || !author || !price) {
     return res.status(400).json({ message: 'Toutes les informations nécessaires doivent être fournies' });
   }
 
-  // Si domaines_info est un tableau (comme dans votre exemple précédent)
-  const filteredDomains = (domains || []).filter(d => 
-    Array.isArray(domaines_info) 
-      ? domaines_info.includes(d)
-      : Object.keys(domaines_info).includes(d)
-  );
-
- 
+  // Ici je mets juste la liste brute (tu peux améliorer plus tard)
+  const filteredDomains = domains || [];
 
   try {
     const newCourse = await Course.create({
@@ -43,25 +36,26 @@ exports.createCourse = async (req, res) => {
       list3,
       categories,
       image,
-      badge: badge || null,  // Set badge as null if not provided
+      badge: badge || null,
       author,
-      rating: rating || 0,  // Default rating to 0 if not provided
-      reviews: reviews || null,  // Default reviews to null if not provided
+      rating: rating || 0,
+      reviews: reviews || null,
       price,
-      originalPrice: originalPrice || price,  // Default originalPrice to price if not provided
-      tag: tag || 'new',  // Default tag to 'new' if not provided
+      originalPrice: originalPrice || price,
+      tag: tag || 'new',
       domains: filteredDomains,
-      sousSousDomaines: sousSousDomaines || [],  // Set as empty array if not provided
+      sousSousDomaines: sousSousDomaines || [],
       subdomains: subdomains || [],
-      secondSubdomain: secondSubdomain || []    
-      // Set as empty array if not provided
+      secondSubdomain: secondSubdomain || []
     });
 
     res.status(201).json({ message: 'Cours ajouté avec succès', course: newCourse });
   } catch (err) {
+    console.error('💥 Erreur lors de la création :', err);
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
 };
+
 
 
 exports.getCoursesBySubdomain = async (req, res) => {
