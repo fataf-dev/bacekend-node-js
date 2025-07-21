@@ -1,61 +1,79 @@
 
 
 const { Course } = require('../models');
-const { Sequelize } = require('sequelize');  // Assurez-vous que Sequelize est importé
+const { Sequelize } = require('sequelize'); 
+const multer = require('multer');
+const path = require('path'); // Assurez-vous que Sequelize est importé
 // Définition correcte des sous-domaines par domaine
+
+
+
 exports.createCourse = async (req, res) => {
-  if (!req.body || typeof req.body !== 'object') {
-    return res.status(400).json({ message: '❌ Le corps de la requête est vide ou invalide' });
-  }
-
-  let { title, categories, image, badge, author, rating, reviews, description, list1, list2, list3, price, originalPrice, tag, domains, secondSubdomain, subdomains, sousSousDomaines } = req.body;
-
-  // Parsing JSON strings
   try {
-    if (typeof categories === 'string' && categories.trim() !== '') categories = JSON.parse(categories);
-    if (typeof domains === 'string' && domains.trim() !== '') domains = JSON.parse(domains);
-    if (typeof subdomains === 'string' && subdomains.trim() !== '') subdomains = JSON.parse(subdomains);
-    if (typeof sousSousDomaines === 'string' && sousSousDomaines.trim() !== '') sousSousDomaines = JSON.parse(sousSousDomaines);
-  } catch (e) {
-    return res.status(400).json({ message: '❌ Un des champs JSON est mal formé.' });
-  }
+    const { title, categories, badge, author, rating, reviews, description, list1, list2, list3, price, originalPrice, tag, domains, secondSubdomain, subdomains, sousSousDomaines } = req.body;
 
-  if (!title || !image || !author || !price) {
-    return res.status(400).json({ message: 'Toutes les informations nécessaires doivent être fournies' });
-  }
+    let parsedCategories = categories;
+    let parsedDomains = domains;
+    let parsedSubdomains = subdomains;
+    let parsedSousSousDomaines = sousSousDomaines;
 
-  // Ici je mets juste la liste brute (tu peux améliorer plus tard)
-  const filteredDomains = domains || [];
+    if (typeof categories === 'string') parsedCategories = JSON.parse(categories);
+    if (typeof domains === 'string') parsedDomains = JSON.parse(domains);
+    if (typeof subdomains === 'string') parsedSubdomains = JSON.parse(subdomains);
+    if (typeof sousSousDomaines === 'string') parsedSousSousDomaines = JSON.parse(sousSousDomaines);
 
-  try {
-    const newCourse = await Course.create({
-      title,
-      description,
-      list1,
-      list2,
-      list3,
-      categories,
-      image,
-      badge: badge || null,
-      author,
-      rating: rating || 0,
-      reviews: reviews || null,
-      price,
-      originalPrice: originalPrice || price,
-      tag: tag || 'new',
-      domains: filteredDomains,
-      sousSousDomaines: sousSousDomaines || [],
-      subdomains: subdomains || [],
-      secondSubdomain: secondSubdomain || []
-    });
+    // Upload vidéo si elle est présente
+    let videoUrl = null;
+    if (req.file) {
+      const result = await cloudinary.uploader.upload_stream(
+        { resource_type: 'video' },
+        (error, result) => {
+          if (error) {
+            return res.status(500).json({ message: 'Erreur Cloudinary', error });
+          }
 
-    res.status(201).json({ message: 'Cours ajouté avec succès', course: newCourse });
+          videoUrl = result.secure_url;
+          createCourseInDb(); // Appel de la fonction après l’upload
+        }
+      );
+
+      // Passer le fichier buffer à Cloudinary
+      const stream = require('streamifier').createReadStream(req.file.buffer);
+      stream.pipe(result);
+    } else {
+      createCourseInDb(); // Si pas de vidéo
+    }
+
+    function createCourseInDb() {
+      Course.create({
+        title,
+        description,
+        list1,
+        list2,
+        list3,
+        categories: parsedCategories,
+        badge,
+        author,
+        rating: rating || 0,
+        reviews,
+        price,
+        originalPrice: originalPrice || price,
+        tag,
+        domains: parsedDomains,
+        sousSousDomaines: parsedSousSousDomaines,
+        subdomains: parsedSubdomains,
+        secondSubdomain,
+        video: videoUrl // <- Ajoute cette propriété à ton modèle
+      }).then(course => {
+        res.status(201).json({ message: '✅ Cours ajouté', course });
+      }).catch(err => {
+        res.status(500).json({ message: '❌ Erreur lors de la création', error: err.message });
+      });
+    }
   } catch (err) {
-    console.error('💥 Erreur lors de la création :', err);
-    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+    res.status(500).json({ message: '❌ Erreur générale', error: err.message });
   }
 };
-
 
 
 exports.getCoursesBySubdomain = async (req, res) => {
@@ -175,3 +193,7 @@ function parseOrDefault(value) {
     return [];
   }
 }
+
+
+
+

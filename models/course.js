@@ -49,6 +49,10 @@ module.exports = (sequelize, DataTypes) => {
     list2:DataTypes.STRING,
     list3:DataTypes.STRING,
     originalPrice: DataTypes.FLOAT,
+    video: {
+  type: DataTypes.STRING,
+  allowNull: true
+},
     domains: {
       type: DataTypes.JSON,
       allowNull: false,
