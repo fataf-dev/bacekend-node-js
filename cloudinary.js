@@ -1,4 +1,7 @@
 // cloudinary.js
+
+require('dotenv').config();
+
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer'); // N'oubliez pas d'importer multer

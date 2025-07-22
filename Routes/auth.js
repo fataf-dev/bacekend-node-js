@@ -6,9 +6,8 @@ const {verifyAdmin}=require('../middleware/VerifyToken')
 
 const tokenBlacklist = require('../tokenBlacklist');
 // Login
-
 router.post('/login', async (req, res) => {
-  const { email } = req.body;
+  const { email, password } = req.body;
 
   try {
     const user = await User.findOne({ where: { email } });
@@ -17,17 +16,17 @@ router.post('/login', async (req, res) => {
       return res.status(404).json({ message: "Aucun utilisateur trouvé avec cet email." });
     }
 
-    // Supposons que l'on utilise un mot de passe générique pour l'instant, ou qu'il n'y en ait pas
-    // Si tu veux réactiver une vérification de mot de passe, tu peux rajouter bcrypt.compare()
+    const isMatch = await bcrypt.compare(password, user.password); // ✅ Vérification du mot de passe
+    if (!isMatch) {
+      return res.status(401).json({ message: "Mot de passe incorrect." });
+    }
 
-    // Génération du token JWT
     const token = jwt.sign(
       { id: user.id, role: user.role, name: user.name },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
 
-    // Redirection dynamique selon le rôle
     let redirectUrl = '/dashboard';
     if (user.role === 'admin') redirectUrl = '/dashboard';
     else if (user.role === 'student') redirectUrl = '/flutter';
@@ -45,18 +44,15 @@ router.post('/login', async (req, res) => {
     });
 
   } catch (error) {
-    console.log("Réponse backend:", response.data);
-
     return res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 });
 
 
 router.post('/register', async (req, res) => {
-  const { name, email } = req.body;
+  const { name, email, password } = req.body;
 
-  // Vérification des champs requis
-  if (!name || !email) {
+  if (!name || !email || !password) {
     return res.status(400).json({ message: 'Champs requis manquants' });
   }
 
@@ -66,11 +62,13 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ message: 'Cet email est déjà utilisé' });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10); // 🔒 hachage du mot de passe
     const role = 'user';
 
     const newUser = await User.create({
       name,
       email,
+      password: hashedPassword, // 👈 stocker le mot de passe haché
       role
     });
 
@@ -95,6 +93,7 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
 });
+
 
 
 
