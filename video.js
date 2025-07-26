@@ -1,31 +1,38 @@
-require('dotenv').config();
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
 
+const router = express.Router();
 
-const bcrypt = require('bcryptjs');
-const { User } = require('./models'); // adapte le chemin selon ton projet
-
-async function createAdmin() {
-  try {
-    const existingAdmin = await User.findOne({ where: { email: 'gandyam@admin.com' } });
-    if (existingAdmin) {
-      console.log('Admin existe déjà.');
-      return;
-    }
-
-    const password = 'motDePasseAdmin123';
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    await User.create({
-      name: 'Admin',
-      email: 'gandyam@admin.com',  // nouvel email
-      password: hashedPassword,
-      role: 'admin',
-    });
-
-    console.log('Admin créé avec succès !');
-  } catch (error) {
-    console.error('Erreur lors de la création de l\'admin:', error);
+// Définir le stockage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/videos');
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + ext;
+    cb(null, uniqueName);
   }
-}
+});
 
-createAdmin();
+// Filtrer les types de fichiers acceptés (vidéo uniquement)
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('video/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Type de fichier non supporté'), false);
+  }
+};
+
+const upload = multer({ storage, fileFilter });
+
+// Route d'upload vidéo
+router.post('/video', upload.single('video'), (req, res) => {
+  if (!req.file) return res.status(400).json({ message: 'Aucune vidéo envoyée.' });
+
+  const videoUrl = `/uploads/videos/${req.file.filename}`;
+  res.status(200).json({ message: 'Vidéo uploadée avec succès.', url: videoUrl });
+});
+
+module.exports = router;

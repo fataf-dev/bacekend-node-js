@@ -5,73 +5,63 @@ const { Sequelize } = require('sequelize');
 const multer = require('multer');
 const path = require('path'); // Assurez-vous que Sequelize est importé
 // Définition correcte des sous-domaines par domaine
-
-
-
 exports.createCourse = async (req, res) => {
   try {
-    const { title, categories, badge, author, rating, reviews, description, list1, list2, list3, price, originalPrice, tag, domains, secondSubdomain, subdomains, sousSousDomaines } = req.body;
+    const {
+      title,
+      categories,
+      badge,
+      author,
+      rating,
+      reviews,
+      description,
+      list1,
+      list2,
+      list3,
+      price,
+      originalPrice,
+      tag,
+      domains,
+      secondSubdomain,
+      subdomains,
+      sousSousDomaines,
+    } = req.body;
 
-    let parsedCategories = categories;
-    let parsedDomains = domains;
-    let parsedSubdomains = subdomains;
-    let parsedSousSousDomaines = sousSousDomaines;
+    const parsedCategories = typeof categories === 'string' ? JSON.parse(categories) : categories;
+    const parsedDomains = typeof domains === 'string' ? JSON.parse(domains) : domains;
+    const parsedSubdomains = typeof subdomains === 'string' ? JSON.parse(subdomains) : subdomains;
+    const parsedSousSousDomaines = typeof sousSousDomaines === 'string' ? JSON.parse(sousSousDomaines) : sousSousDomaines;
 
-    if (typeof categories === 'string') parsedCategories = JSON.parse(categories);
-    if (typeof domains === 'string') parsedDomains = JSON.parse(domains);
-    if (typeof subdomains === 'string') parsedSubdomains = JSON.parse(subdomains);
-    if (typeof sousSousDomaines === 'string') parsedSousSousDomaines = JSON.parse(sousSousDomaines);
-
-    // Upload vidéo si elle est présente
-    let videoUrl = null;
+    // Video optionnelle
+    let videoPath = null;
     if (req.file) {
-      const result = await cloudinary.uploader.upload_stream(
-        { resource_type: 'video' },
-        (error, result) => {
-          if (error) {
-            return res.status(500).json({ message: 'Erreur Cloudinary', error });
-          }
-
-          videoUrl = result.secure_url;
-          createCourseInDb(); // Appel de la fonction après l’upload
-        }
-      );
-
-      // Passer le fichier buffer à Cloudinary
-      const stream = require('streamifier').createReadStream(req.file.buffer);
-      stream.pipe(result);
-    } else {
-      createCourseInDb(); // Si pas de vidéo
+      videoPath = `/uploads/videos/${req.file.filename}`;
     }
 
-    function createCourseInDb() {
-      Course.create({
-        title,
-        description,
-        list1,
-        list2,
-        list3,
-        categories: parsedCategories,
-        badge,
-        author,
-        rating: rating || 0,
-        reviews,
-        price,
-        originalPrice: originalPrice || price,
-        tag,
-        domains: parsedDomains,
-        sousSousDomaines: parsedSousSousDomaines,
-        subdomains: parsedSubdomains,
-        secondSubdomain,
-        video: videoUrl // <- Ajoute cette propriété à ton modèle
-      }).then(course => {
-        res.status(201).json({ message: '✅ Cours ajouté', course });
-      }).catch(err => {
-        res.status(500).json({ message: '❌ Erreur lors de la création', error: err.message });
-      });
-    }
+    const course = await Course.create({
+      title,
+      description,
+      list1,
+      list2,
+      list3,
+      categories: parsedCategories,
+      badge,
+      author,
+      rating: rating || 0,
+      reviews,
+      price,
+      originalPrice: originalPrice || price,
+      tag,
+      domains: parsedDomains,
+      sousSousDomaines: parsedSousSousDomaines,
+      subdomains: parsedSubdomains,
+      secondSubdomain,
+      video: videoPath,  // video peut être null
+    });
+
+    res.status(201).json({ message: '✅ Cours ajouté', course });
   } catch (err) {
-    res.status(500).json({ message: '❌ Erreur générale', error: err.message });
+    res.status(500).json({ message: '❌ Erreur lors de la création du cours', error: err.message });
   }
 };
 
@@ -107,6 +97,20 @@ exports.getCoursesBySubdomain = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+
+
+
+exports.getAllCourses = async (req, res) => {
+  try {
+    const courses = await Course.findAll();  // Récupère tous les cours
+
+    res.status(200).json(courses);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des cours :', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la récupération des cours' });
   }
 };
 

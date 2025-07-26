@@ -9,6 +9,18 @@ const app = express();
 
 app.use(cors());
 
+
+const mime = require('mime-types');
+
+app.use('/uploads', (req, res, next) => {
+  if (req.path.endsWith('.mp4')) {
+    res.set('Content-Type', 'video/mp4');
+  }
+  next();
+});
+
+
+
 // ✅ Servir les fichiers statiques dans "uploads"
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
