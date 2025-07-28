@@ -25,7 +25,7 @@ router.get('/all', DevelController.getAllCourses);
 router.get('/subdomain/:subdomain',DevelController.getCoursesBySubdomain); 
 //router.post('/create', upload.single('video'), DevelController.createCourse);
 
-router.get('/by-soussousdomaine/:soussousdomaine',DevelController.getCoursesBySousSousDomaine);
+router.get('/by-SousSousDomaine/:SousSousDomaine',DevelController.getCoursesBySousSousDomaine);
 router.get('/courses/second-subdomain/:secondSubdomain',DevelController.getCoursesBySecondSubdomain);
 
  module.exports = router;

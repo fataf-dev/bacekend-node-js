@@ -113,26 +113,26 @@ exports.getAllCourses = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur lors de la récupération des cours' });
   }
 };
-
-// Ajuste selon l'organisation de ton projet
-
 exports.getCoursesBySousSousDomaine = async (req, res) => {
-  const { soussousdomaine } = req.params;
+  const { SousSousDomaine } = req.params;
 
-  if (!soussousdomaine || typeof soussousdomaine !== 'string' || soussousdomaine.trim() === '') {
+  console.log("Paramètres reçus :", req.params);
+  console.log("SousSousDomaine reçu :", SousSousDomaine);
+
+  if (!SousSousDomaine || typeof SousSousDomaine !== 'string' || SousSousDomaine.trim() === '') {
     return res.status(400).json({ message: 'Sous-sous-domaine invalide' });
   }
 
   try {
-    const soussousdomaineJSON = JSON.stringify(soussousdomaine); // ex: "Cryptomonnaies"
+    const sousSousDomainesJSON = JSON.stringify(SousSousDomaine);
 
     const courses = await Course.findAll({
-      where: Sequelize.literal(`JSON_CONTAINS(sousSousDomaines, '${soussousdomaineJSON}')`)
+      where: Sequelize.literal(`JSON_CONTAINS(sousSousDomaines, '${sousSousDomainesJSON}')`)
     });
 
     if (courses.length === 0) {
       return res.status(404).json({
-        message: `Aucun cours trouvé pour le sous-sous-domaine "${soussousdomaine}"`
+        message: `Aucun cours trouvé pour le sous-sous-domaine "${SousSousDomaine}"`
       });
     }
 
