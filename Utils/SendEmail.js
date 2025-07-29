@@ -15,6 +15,7 @@ const transporter = nodemailer.createTransport({
 async function sendVerificationEmail(to, code) {
   const verificationLink = `http://localhost:5000/api/auth/verify-email?email=${encodeURIComponent(to)}&code=${code}`;
 
+
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
       <h2 style="color: #2c3e50;">👋 Bonjour,</h2>
