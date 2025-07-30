@@ -3,7 +3,8 @@
 const express = require('express');
 const router = express.Router();
 
-const upload =require('../middleware/CourseRoutes')
+const { upload } = require('../Utils/uploadsVideo')
+
 
 
  // le chemin vers ta config multer/cloudinary
@@ -11,11 +12,12 @@ const upload =require('../middleware/CourseRoutes')
 const DevelController = require('../controllers/developpement'); // chemin correct
 
 // ✅ Ces deux doivent être bien définies dans ton contrôleur
-router.post('/create',upload.single('video'), DevelController.createCourse);
+router.post('/create', upload.single('video'), DevelController.createCourse);
+
 
 router.get('/all', DevelController.getAllCourses);
 
-
+ 
 // Appliquer ce middleware à ta route de création de cours
 //router.post('/create', upload.single('video'), DevelController.createCourse);
 
@@ -30,3 +32,4 @@ router.get('/courses/second-subdomain/:secondSubdomain',DevelController.getCours
 
  module.exports = router;
 
+ 

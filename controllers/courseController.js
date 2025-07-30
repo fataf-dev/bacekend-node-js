@@ -73,30 +73,42 @@ if (typeof domains === 'string' && domains.trim() !== '') domains = JSON.parse(d
 
   // Assurez-vous que Sequelize est importé
   
-  exports.getCoursesByDomain = async (req, res) => {
-    const { domain } = req.params;
-    console.log("Domaine capturé:", domain);  // Ajoute cette ligne pour le débogage
-  
-    // Vérification que le domaine est bien dans la liste
-    if (!domaines_info.includes(domain)) {
-      return res.status(400).json({ message: `Domaine invalide : ${domain}. Veuillez choisir un domaine valide.` });
+ exports.getCoursesByDomain = async (req, res) => {
+  const { domain } = req.params;
+  console.log("Domaine capturé:", domain);
+
+  if (!domaines_info.includes(domain)) {
+    return res.status(400).json({ message: `Domaine invalide : ${domain}. Veuillez choisir un domaine valide.` });
+  }
+
+  try {
+    const domainJSON = JSON.stringify([domain]); // Ex: '["Développement"]'
+
+    const courses = await Course.findAll({
+      where: Sequelize.literal(`JSON_CONTAINS(domains, '${domainJSON}')`)
+    });
+
+    if (courses.length === 0) {
+      return res.status(404).json({ message: `Aucun cours trouvé pour le domaine ${domain}` });
     }
-  
-    try {
-      const domainJSON = JSON.stringify([domain]); // Ex: '["Développement"]'
-  
-      const courses = await Course.findAll({
-        where: Sequelize.literal(`JSON_CONTAINS(domains, '${domainJSON}')`)
-      });
-  
-      if (courses.length === 0) {
-        return res.status(404).json({ message: `Aucun cours trouvé pour le domaine ${domain}` });
-      }
-  
-      res.status(200).json(courses);
-    } catch (err) {
-      res.status(500).json({ message: 'Erreur serveur', error: err.message });
-    }
-  };
-  
+
+    // Transformation des données pour parser les champs JSON et garder video_url
+    const coursesWithParsedFields = courses.map(course => {
+      const c = course.toJSON();
+      return {
+        ...c,
+        domains: c.domains ? JSON.parse(c.domains) : [],
+        subdomains: c.subdomains ? JSON.parse(c.subdomains) : [],
+        sousSousDomaines: c.sousSousDomaines ? JSON.parse(c.sousSousDomaines) : [],
+        video_url: c.video_url,
+        secondSubdomain: c.secondSubdomain
+      };
+    });
+
+    res.status(200).json(coursesWithParsedFields);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
   

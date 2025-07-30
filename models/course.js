@@ -42,6 +42,12 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: []
     },
    
+    videoUrl: {
+  type: DataTypes.TEXT,
+  allowNull: true,
+  
+}
+,
     reviews: DataTypes.INTEGER,
     price: DataTypes.FLOAT,
     description:DataTypes.STRING,
@@ -53,6 +59,11 @@ module.exports = (sequelize, DataTypes) => {
   type: DataTypes.STRING,
   allowNull: true
 },
+video_url: {
+  type: DataTypes.TEXT,
+  allowNull: true,
+},
+
     domains: {
       type: DataTypes.JSON,
       allowNull: false,

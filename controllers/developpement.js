@@ -5,6 +5,11 @@ const { Sequelize } = require('sequelize');
 const multer = require('multer');
 const path = require('path'); // Assurez-vous que Sequelize est importé
 // Définition correcte des sous-domaines par domaine
+
+
+
+const { uploadToStorj } = require('../Utils/uploadsVideo') // Assure-toi que ce module existe
+
 exports.createCourse = async (req, res) => {
   try {
     const {
@@ -25,19 +30,18 @@ exports.createCourse = async (req, res) => {
       secondSubdomain,
       subdomains,
       sousSousDomaines,
-    } = req.body;
+      video_url,
+      videoUrl
+} = req.body;
 
     const parsedCategories = typeof categories === 'string' ? JSON.parse(categories) : categories;
     const parsedDomains = typeof domains === 'string' ? JSON.parse(domains) : domains;
     const parsedSubdomains = typeof subdomains === 'string' ? JSON.parse(subdomains) : subdomains;
     const parsedSousSousDomaines = typeof sousSousDomaines === 'string' ? JSON.parse(sousSousDomaines) : sousSousDomaines;
 
-    // Video optionnelle
-    let videoPath = null;
-    if (req.file) {
-      videoPath = `/uploads/videos/${req.file.filename}`;
-    }
-
+    // Étape 1 : Upload de la vidéo et génération automatique du lien public
+    
+    // Étape 2 : Enregistrement du cours en base de données
     const course = await Course.create({
       title,
       description,
@@ -53,19 +57,20 @@ exports.createCourse = async (req, res) => {
       originalPrice: originalPrice || price,
       tag,
       domains: parsedDomains,
-      sousSousDomaines: parsedSousSousDomaines,
       subdomains: parsedSubdomains,
+      sousSousDomaines: parsedSousSousDomaines,
       secondSubdomain,
-      video: videoPath,  // video peut être null
+      video_url,
+      videoUrl  
     });
 
-    res.status(201).json({ message: '✅ Cours ajouté', course });
+    res.status(201).json({ message: '✅ Cours ajouté avec succès', course });
+
   } catch (err) {
+    console.error('❌ Erreur création cours :', err);
     res.status(500).json({ message: '❌ Erreur lors de la création du cours', error: err.message });
   }
 };
-
-
 exports.getCoursesBySubdomain = async (req, res) => {
   const { subdomain } = req.params;
 
@@ -74,7 +79,8 @@ exports.getCoursesBySubdomain = async (req, res) => {
   }
 
   try {
-    const subdomainJSON = JSON.stringify(subdomain); // Ex: '"graphic-design"'
+    const subdomainJSON = JSON.stringify(subdomain);
+
     const courses = await Course.findAll({
       where: Sequelize.literal(`JSON_CONTAINS(subdomains, '${subdomainJSON}')`)
     });
@@ -85,12 +91,14 @@ exports.getCoursesBySubdomain = async (req, res) => {
       });
     }
 
-    // Assurez-vous que subdomains et domains sont traités comme des tableaux
-    const coursesWithParsedFields = courses.map(course => {
-      course.subdomains = JSON.parse(course.subdomains);
-      course.domains = JSON.parse(course.domains);
-      return course;
-    });
+    const coursesWithParsedFields = courses.map(course => ({
+      ...course.toJSON(),
+      subdomains: JSON.parse(course.subdomains),
+      domains: JSON.parse(course.domains),
+      sousSousDomaines: course.sousSousDomaines ? JSON.parse(course.sousSousDomaines) : [],
+      video_url: course.video_url,  // ici la clé snake_case
+      secondSubdomain: course.secondSubdomain
+    }));
 
     res.status(200).json(coursesWithParsedFields);
 
@@ -99,6 +107,7 @@ exports.getCoursesBySubdomain = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
 };
+
 
 
 
@@ -140,7 +149,9 @@ exports.getCoursesBySousSousDomaine = async (req, res) => {
       ...course.toJSON(),
       subdomains: typeof course.subdomains === 'string' ? JSON.parse(course.subdomains) : course.subdomains,
       domains: typeof course.domains === 'string' ? JSON.parse(course.domains) : course.domains,
-      sousSousDomaines: typeof course.sousSousDomaines === 'string' ? JSON.parse(course.sousSousDomaines) : course.sousSousDomaines
+      sousSousDomaines: typeof course.sousSousDomaines === 'string' ? JSON.parse(course.sousSousDomaines) : course.sousSousDomaines,
+       videoUrl: course.videoUrl, // 👍 Lien de la vidéo stocké
+      video_url: course.video_url,  
     }));
 
     res.status(200).json(coursesWithParsedFields);
@@ -179,6 +190,9 @@ exports.getCoursesBySecondSubdomain = async (req, res) => {
       subdomains: parseOrDefault(course.subdomains),
       sousSousDomaines: parseOrDefault(course.sousSousDomaines),
       secondSubdomain: parseOrDefault(course.secondSubdomain),
+      videoUrl: course.videoUrl ,
+      video_url: course.video_url,  
+       // 👍 Lien de la vidéo stocké
     }));
 
     res.status(200).json(coursesWithParsedFields);
