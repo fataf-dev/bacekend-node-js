@@ -6,9 +6,7 @@ const cloudinary = require('cloudinary').v2;
 
 // Configuration avec VOS paramètres
 cloudinary.config({ 
-  cloud_name: 'dyqnqglxl', 
-  api_key: '963466874526389', 
-  api_secret: 'xA32c-qwbh-wp5IBQG0X0eI9gAI'
+  
 });
 
 // 3. Upload de votre vidéo videoMins.mp4 (SOLUTION POUR GROS FICHIERS)

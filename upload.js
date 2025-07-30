@@ -4,12 +4,7 @@ const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 
 // Configuration S3 pour Storj
 const s3 = new S3Client({
-  region: 'us-east-1',
-  endpoint: 'https://gateway.storjshare.io',
-  credentials: {
-    accessKeyId: 'jxbrxunuysccjjidu34kvk2x36ya',
-    secretAccessKey: 'jy4ai7kk5byysuws6mae56mpi4gh2apdm6fyepaowriel4weawe6m',
-  },
+  
   forcePathStyle: true,
 });
 
