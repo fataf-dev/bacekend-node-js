@@ -2,6 +2,8 @@ require('dotenv').config();
 
 const express = require('express');
 const passport = require('passport');
+const Sequelize = require('sequelize');
+const { Op } = Sequelize;
 const jwt = require('jsonwebtoken');
 const { Strategy: GoogleStrategy } = require('passport-google-oauth20');
 const { User } = require('../models');
@@ -17,7 +19,6 @@ if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !JWT_SECRET) {
   throw new Error('❌ Variables d’environnement manquantes dans le fichier .env');
 }
 
-// Configuration de la stratégie Google OAuth
 passport.use(new GoogleStrategy({
   clientID: GOOGLE_CLIENT_ID,
   clientSecret: GOOGLE_CLIENT_SECRET,
@@ -26,13 +27,19 @@ passport.use(new GoogleStrategy({
   try {
     console.log("👤 Profil Google reçu dans la stratégie :", profile);
 
-    const [user] = await User.findOrCreate({
-      where: { googleId: profile.id },
+    const [user, created] = await User.findOrCreate({
+      where: {
+        [Op.or]: [
+          { googleId: profile.id },
+          { email: profile.emails[0].value }
+        ]
+      },
       defaults: {
         name: profile.displayName,
         email: profile.emails[0].value,
         avatar: profile.photos?.[0]?.value || null,
-        role: 'student'
+        role: 'student',
+        googleId: profile.id
       }
     });
 
@@ -43,12 +50,10 @@ passport.use(new GoogleStrategy({
   }
 }));
 
-// Lancer l'authentification Google
 router.get('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'], session: false })
 );
 
-// Traiter le callback Google
 router.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/', session: false }),
   (req, res) => {
