@@ -53,6 +53,7 @@ passport.use(new GoogleStrategy({
 router.get('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'], session: false })
 );
+
 router.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/', session: false }),
   (req, res) => {
@@ -67,24 +68,10 @@ router.get('/auth/google/callback',
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
 
-    // ⚠️ On renvoie une page HTML qui poste un message à la fenêtre parent
-    res.send(`
-      <html>
-        <body>
-          <script>
-            // Envoyer le token au frontend via postMessage
-            window.opener.postMessage({
-              type: 'google-auth',
-              token: "${token}"
-            }, "${FRONTEND_URL}");
-            window.close();
-          </script>
-        </body>
-      </html>
-    `);
+    res.redirect(`${FRONTEND_URL}/callback-google.html?token=${token}`);
+    
+
   }
 );
-
-
 
 module.exports = router;
