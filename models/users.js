@@ -11,7 +11,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       defaultValue: 'user',
     },
-    googleId: DataTypes.STRING, // ✅ Google OAuth (optionnel)
+    googleId: {
+  type: DataTypes.STRING,
+  allowNull: false,
+  unique: true
+},
+ // ✅ Google OAuth (optionnel)
     avatar: DataTypes.STRING,   // image de profil
     verificationCode: {
       type: DataTypes.STRING,

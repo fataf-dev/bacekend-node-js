@@ -17,12 +17,15 @@ if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !JWT_SECRET) {
   throw new Error('❌ Variables d’environnement manquantes dans le fichier .env');
 }
 
+// Configuration de la stratégie Google OAuth
 passport.use(new GoogleStrategy({
   clientID: GOOGLE_CLIENT_ID,
   clientSecret: GOOGLE_CLIENT_SECRET,
   callbackURL: "https://bacekend-node-js-1.onrender.com/auth/google/callback"
 }, async (accessToken, refreshToken, profile, done) => {
   try {
+    console.log("👤 Profil Google reçu dans la stratégie :", profile);
+
     const [user] = await User.findOrCreate({
       where: { googleId: profile.id },
       defaults: {
@@ -32,8 +35,10 @@ passport.use(new GoogleStrategy({
         role: 'student'
       }
     });
+
     return done(null, user);
   } catch (error) {
+    console.error('❌ Erreur dans GoogleStrategy:', error);
     return done(error, null);
   }
 }));
@@ -43,10 +48,12 @@ router.get('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'], session: false })
 );
 
-// Traiter le callback
+// Traiter le callback Google
 router.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/', session: false }),
   (req, res) => {
+    console.log("✅ Utilisateur connecté via Google :", req.user);
+
     const payload = {
       id: req.user.id,
       name: req.user.name,
