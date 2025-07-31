@@ -32,6 +32,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       defaultValue: []
     },
+    video_url: {
+  type: DataTypes.TEXT,
+  allowNull: true
+},
     secondSubdomain: {
       type: DataTypes.JSON,
       allowNull: true
@@ -59,11 +63,6 @@ module.exports = (sequelize, DataTypes) => {
   type: DataTypes.STRING,
   allowNull: true
 },
-video_url: {
-  type: DataTypes.TEXT,
-  allowNull: true,
-},
-
     domains: {
       type: DataTypes.JSON,
       allowNull: false,
