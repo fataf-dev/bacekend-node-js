@@ -13,9 +13,10 @@ module.exports = (sequelize, DataTypes) => {
     },
     googleId: {
   type: DataTypes.STRING,
-  allowNull: false,
+  allowNull: true,  // <-- important
   unique: true
 },
+
  // ✅ Google OAuth (optionnel)
     avatar: DataTypes.STRING,   // image de profil
     verificationCode: {
